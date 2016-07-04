@@ -1,5 +1,5 @@
 function d=distancia(x,y,seg)
-%funciónauxiliar que calcula la distancia de un punto de coordenadas x,y a
+%función auxiliar que calcula la distancia de un punto de coordenadas x,y a
 %un segmento
 
 %proyecto el punto en la línea que define el segmento (producto escalar)
