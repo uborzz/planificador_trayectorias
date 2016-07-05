@@ -8,7 +8,7 @@ clc, clear all, close all
 
     robot = 8;   % tamaño robot en pixeles
     border = 2;  % borde para añadir imagen
-    modo = 1;    % modo =1 basico, Diagrama de voronoi, 
+    modo = 0;    % modo =1 basico, Diagrama de voronoi, 
                  % =0 Muestra zonas donde no cabe el robot.
 
    %-------------------------------------------------------------%
@@ -65,39 +65,43 @@ for k = 1:length(comb(:,1))
     BM = BM(BM(:,1)>=(min(y1,y2)-2), :);
     BM = BM(BM(:,1)<=(max(y1,y2)+2), :);
         
-    %equación de la recta
-    % (y1-y2) * X + (x2-x1) * Y + (x1*y2-x2*y1) = 0
-    test = (y1-y2)*BM(:,2) + (x2-x1)*BM(:,1) + (x1*y2-x2*y1); 
-       
-    coincidencias = sum(abs(test)<=1)
+    % Valoración del segmento=pared mediante lo cerca que estén los puntos
+    % del boundaries de él. Conviente quitar puntos muy cercanos a los
+    % vértices para pendientes muy inclinadas u horizotales, 
+    % pero de momento queda así.
+    
+    ss.pi = [x1,y1]'; % Estructura para función distancia
+    ss.pf = [x2,y2]';
 
-    i = x1;
-    j = y1;
+    Ns = length(BM);
 
-    if coincidencias >= 5
-        s(l).pi = [x1,y1]'
-        s(l).pf = [x2,y2]'
+    clear distrecta;
+    for q=1:Ns  % Valoramos todos los puntos del bound respecto a la recta.
+        distrecta(q) = distancia(BM(q,2),BM(q,1),ss);
+    end
+    
+    % Para distancia menor a 0.2p contamos los resultados, además, se
+    % requiere una cantidad de resultados según la distancia de esa recta
+    coincidencias = sum(abs(distrecta)<=0.2) 
+    if coincidencias >= (max(abs((x1-x2)),abs((y1-y2)))*0.3) 
+        s(l) = ss;
         l = l+1;
     end
-       
-%     end
-    %for 
     %pause
 end
 
-
-[Nx,Ny]=size(im);
+%Pintamos el mapa aplicando Voronoi
+[Nx,Ny]=size(im); % están los nombres al revés U-.-
 Ns = length(s)
 
-Color = zeros(size(im));
-size(Color)
-
+Color = zeros(size(im)); %inicialización
 
 for i=1:Nx
     for j=1:Ny
         if (imf(i,j)>0)
+                clear dis;
             for k=1:Ns
-                dis(k) = distancia(j,i,s(k));
+                dis(k) = distancia(j,i,s(k)); 
             end
             
            [val1, pos1] = min(dis); dis(pos1) = []; %borde más cercano, lo saco del array
@@ -106,10 +110,10 @@ for i=1:Nx
            
            switch modo
                case 1,
-                    Color(i,j) = pos1;
+                    Color(i,j) = pos1*3+3; %Algunos colores salen muy parecidos con contourf
                otherwise,
                    if ((val2+val1)>(robot*1.5)) %cabe el robot? 
-                       Color(i,j) = pos1; 
+                       Color(i,j) = pos1+3; 
                    elseif (sum(s(pos1).pi ~= s(pos2).pf) && ...
                            sum(s(pos1).pi ~= s(pos2).pi) && ...
                            sum(s(pos1).pf ~= s(pos2).pf) && ...
