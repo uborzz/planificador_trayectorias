@@ -6,10 +6,12 @@ clc, clear all, close all
 
     im = imread('Figuras/fig1mod.jpg'); % fichero mapa
 
-    robot = 8;   % tamaño robot en pixeles
+    robot = 12;   % tamaño robot en pixeles
     border = 2;  % borde para añadir imagen
-    modo = 0;    % modo =1 basico, Diagrama de voronoi, 
+    modo = 1;    % modo =1 basico, Diagrama de voronoi, 
                  % =0 Muestra zonas donde no cabe el robot.
+    ajuste1 = 0.2;   % maximo desvio error para punto C recta
+    ajuste2 = 0.3;   % porcentaje puntos dentro recta para validar
 
    %-------------------------------------------------------------%
              
@@ -82,8 +84,8 @@ for k = 1:length(comb(:,1))
     
     % Para distancia menor a 0.2p contamos los resultados, además, se
     % requiere una cantidad de resultados según la distancia de esa recta
-    coincidencias = sum(abs(distrecta)<=0.2) 
-    if coincidencias >= (max(abs((x1-x2)),abs((y1-y2)))*0.3) 
+    coincidencias = sum(abs(distrecta)<=ajuste1) 
+    if coincidencias >= (max(abs((x1-x2)),abs((y1-y2)))*ajuste2) 
         s(l) = ss;
         l = l+1;
     end
@@ -110,7 +112,7 @@ for i=1:Nx
            
            switch modo
                case 1,
-                    Color(i,j) = pos1*3+3; %Algunos colores salen muy parecidos con contourf
+                    Color(i,j) = pos1*2+4; %Algunos colores salen muy parecidos con contourf
                otherwise,
                    if ((val2+val1)>(robot*1.5)) %cabe el robot? 
                        Color(i,j) = pos1+3; 
@@ -122,7 +124,7 @@ for i=1:Nx
                        %diferntes, ademas de que el robot no cabe.
                    else 
                        %las paredes compartían el punto a estudiar (vértice)
-                       if ((val3+val1)>(robot*1.5))
+                       if ((val3+val1)>(robot))
                             Color(i,j) = pos1; %valoramos una tercera pared más cercana
                        else
                        end
@@ -134,7 +136,7 @@ for i=1:Nx
 end 
 
 
-%figure, pcolor(flip(Color)); 
+figure, pcolor(flip(Color)); 
 figure, contourf(flip(Color));
 hold on 
 
